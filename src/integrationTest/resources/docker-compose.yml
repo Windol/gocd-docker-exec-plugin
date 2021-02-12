@@ -1,0 +1,56 @@
+#
+# Copyright 2018 Christopher Arnold <cma.arnold@gmail.com> and contributors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+version: '3.2'
+services:
+  go-server:
+    image: 'gocd/gocd-server:v${System.env.GOCD_VERSION ?: "17.3.0"}'
+    ports:
+      - '8154:8154'
+      - '8153:8153'
+      - '8000:8000'
+    volumes:
+      - '../../libs:/godata/plugins/external'
+      - '../../resources/integrationTest/cruise-config.xml:/godata/config/cruise-config.xml'
+      - '../../resources/integrationTest/passwd:/passwd'
+    environment:
+      - 'GO_SERVER_SYSTEM_PROPERTIES=-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=n'
+  go-agent:
+    image: 'gocd/gocd-agent-ubuntu-16.04:v${System.env.GOCD_VERSION ?: "17.3.0"}'
+    ports:
+      - '8001:8001'
+    environment:
+      - 'GO_SERVER_URL=https://go-server:8154/go'
+      - 'AGENT_AUTO_REGISTER_KEY=a15bb795-ff2c-41f4-b882-6851930a71b9'
+      - 'AGENT_AUTO_REGISTER_HOSTNAME=go-agent'
+      - 'AGENT_AUTO_REGISTER_ENVIRONMENTS=test'
+      - 'AGENT_AUTO_REGISTER_RESOURCES=docker'
+      - 'GO_AGENT_SYSTEM_PROPERTIES=-Dgocddockerexecplugin.dockerhost=http://docker:2375 -agentlib:jdwp=transport=dt_socket,address=8001,server=y,suspend=n'
+    volumes:
+      - type: volume
+        source: go
+        target: /godata
+  docker:
+    image: 'docker:dind'
+    privileged: true
+    volumes:
+      - type: volume
+        source: go
+        target: /go
+
+volumes:
+  go:

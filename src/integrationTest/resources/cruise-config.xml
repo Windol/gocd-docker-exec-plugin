@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Copyright 2018 Christopher Arnold <cma.arnold@gmail.com> and contributors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<cruise xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cruise-config.xsd" schemaVersion="90">
+  <server artifactsdir="artifacts" agentAutoRegisterKey="a15bb795-ff2c-41f4-b882-6851930a71b9" commandRepositoryLocation="default" serverId="b248d081-54da-4de9-a83e-3295cbe2baba">
+    <security>
+      <passwordFile path="/passwd" />
+    </security>
+  </server>
+  <pipelines group="test">
+    <pipeline name="test">
+      <materials>
+        <git url="https://github.com/cma-arnold/gocd-docker-exec-plugin" autoUpdate="false" />
+      </materials>
+      <stage name="test">
+        <approval type="manual" />
+        <jobs>
+          <job name="test">
+            <tasks>
+              <task>
+                <pluginConfiguration id="docker-exec-plugin" version="1" />
+                <configuration>
+                  <property>
+                    <key>IMAGE</key>
+                    <value>gradle:4.4-jdk8</value>
+                  </property>
+                  <property>
+                    <key>COMMAND</key>
+                    <value>gradle</value>
+                  </property>
+                  <property>
+                    <key>ARGUMENTS</key>
+                    <value>assemble</value>
+                  </property>
+                </configuration>
+              </task>
+            </tasks>
+            <resources>
+              <resource>docker</resource>
+            </resources>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="testNoImage">
+      <materials>
+        <git url="https://github.com/cma-arnold/gocd-docker-exec-plugin" autoUpdate="false" />
+      </materials>
+      <stage name="test">
+        <approval type="manual" />
+        <jobs>
+          <job name="test">
+            <tasks>
+              <task>
+                <pluginConfiguration id="docker-exec-plugin" version="1" />
+                <configuration>
+                  <property>
+                    <key>IMAGE</key>
+                    <value>idont:exist</value>
+                  </property>
+                  <property>
+                    <key>COMMAND</key>
+                    <value>true</value>
+                  </property>
+                  <property>
+                    <key>ARGUMENTS</key>
+                    <value />
+                  </property>
+                </configuration>
+              </task>
+            </tasks>
+            <resources>
+              <resource>docker</resource>
+            </resources>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="testMultiArg">
+      <materials>
+        <git url="https://github.com/cma-arnold/gocd-docker-exec-plugin" autoUpdate="false" />
+      </materials>
+      <stage name="test">
+        <approval type="manual" />
+        <jobs>
+          <job name="test">
+            <tasks>
+              <task>
+                <pluginConfiguration id="docker-exec-plugin" version="1" />
+                <configuration>
+                  <property>
+                    <key>IMAGE</key>
+                    <value>ubuntu:latest</value>
+                  </property>
+                  <property>
+                    <key>COMMAND</key>
+                    <value>echo</value>
+                  </property>
+                  <property>
+                    <key>ARGUMENTS</key>
+                    <value>Hello&#xD;
+World</value>
+                  </property>
+                </configuration>
+              </task>
+            </tasks>
+            <resources>
+              <resource>docker</resource>
+            </resources>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="testNoArg">
+      <materials>
+        <git url="https://github.com/cma-arnold/gocd-docker-exec-plugin" autoUpdate="false" />
+      </materials>
+      <stage name="test">
+        <approval type="manual" />
+        <jobs>
+          <job name="test">
+            <tasks>
+              <task>
+                <pluginConfiguration id="docker-exec-plugin" version="1" />
+                <configuration>
+                  <property>
+                    <key>IMAGE</key>
+                    <value>ubuntu:latest</value>
+                  </property>
+                  <property>
+                    <key>COMMAND</key>
+                    <value>true</value>
+                  </property>
+                  <property>
+                    <key>ARGUMENTS</key>
+                    <value />
+                  </property>
+                </configuration>
+              </task>
+            </tasks>
+            <resources>
+              <resource>docker</resource>
+            </resources>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+    <pipeline name="testEnvVars">
+      <environmentvariables>
+        <variable name="TEST1">
+          <value>value1</value>
+        </variable>
+        <variable name="TEST2">
+          <value>value2</value>
+        </variable>
+      </environmentvariables>
+      <materials>
+        <git url="https://github.com/cma-arnold/gocd-docker-exec-plugin" autoUpdate="false" />
+      </materials>
+      <stage name="test">
+        <approval type="manual" />
+        <jobs>
+          <job name="test">
+            <tasks>
+              <task>
+                <pluginConfiguration id="docker-exec-plugin" version="1" />
+                <configuration>
+                  <property>
+                    <key>IMAGE</key>
+                    <value>ubuntu:latest</value>
+                  </property>
+                  <property>
+                    <key>COMMAND</key>
+                    <value>bash</value>
+                  </property>
+                  <property>
+                    <key>ARGUMENTS</key>
+                    <value>-c&#xD;
+echo "TEST1 = $TEST1, TEST2 = $TEST2, GO_PIPELINE_LABEL = $GO_PIPELINE_LABEL"
+                    </value>
+                  </property>
+                </configuration>
+              </task>
+            </tasks>
+            <resources>
+              <resource>docker</resource>
+            </resources>
+          </job>
+        </jobs>
+      </stage>
+    </pipeline>
+  </pipelines>
+  <environments>
+    <environment name="test">
+      <pipelines>
+        <pipeline name="test" />
+        <pipeline name="testNoImage" />
+        <pipeline name="testMultiArg" />
+        <pipeline name="testNoArg" />
+        <pipeline name="testEnvVars" />
+      </pipelines>
+    </environment>
+  </environments>
+</cruise>
