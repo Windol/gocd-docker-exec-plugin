@@ -20,24 +20,44 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.thoughtworks.go.plugin.api.task.Console;
+import com.thoughtworks.go.plugin.api.task.EnvironmentVariables;
 import com.thoughtworks.go.plugin.api.task.JobConsoleLogger;
+import com.thoughtworks.go.plugin.api.task.TaskExecutionContext;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import org.powermock.api.mockito.PowerMockito;
 
 public class UnitTestUtils {
 
-  private UnitTestUtils() {}
+  private UnitTestUtils() {
+  }
 
   public static List<String> mockJobConsoleLogger() {
+    TaskExecutionContext taskExecutionContext = mock(TaskExecutionContext.class);
+    Console mockedConsole = mock(Console.class);
+    when(taskExecutionContext.console()).thenReturn(mockedConsole);
+    EnvironmentVariables environment = mock(EnvironmentVariables.class);
+    when(taskExecutionContext.environment()).thenReturn(environment);
+
+    // ReflectionUtil.setStaticField(JobConsoleLogger.class, "context",
+    // taskExecutionContext);
+    try {
+      Field field = JobConsoleLogger.class.getDeclaredField("context");
+      field.setAccessible(true);
+      field.set(null, taskExecutionContext);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+
     List<String> console = new ArrayList<>();
-    JobConsoleLogger jobConsoleLogger = mock(JobConsoleLogger.class);
     doAnswer(i -> {
       console.add(i.getArgument(0));
       return null;
-    }).when(jobConsoleLogger).printLine(anyString());
-    PowerMockito.mockStatic(JobConsoleLogger.class);
-    when(JobConsoleLogger.getConsoleLogger()).thenReturn(jobConsoleLogger);
+    }).when(mockedConsole).printLine(anyString());
     return console;
   }
 
